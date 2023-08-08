@@ -1,4 +1,4 @@
-BINARY=go_auth
+BINARY=go_audio
 VERSION=1.0.0
 BUILD_DIR=./build
 BUILD_TIME=`date +%FT%T%z`
