@@ -1,78 +1,181 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
-	"os"
-	"time"
-
+	"github.com/MarkKremer/microphone"
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/wav"
 	"github.com/gordonklaus/portaudio"
 	"github.com/urfave/cli"
+	"log"
+	"os"
+	"os/signal"
+	"strings"
+	"time"
 )
 
-var (
-	recording bool
-	file      *os.File
-)
-
-func startRecording(c *cli.Context) {
-	portaudio.Initialize()
-	defer portaudio.Terminate()
-
-	// Open output file
-	f, err := os.Create(c.String("output"))
+func recordFromMicrophone(output string,
+	duration int,
+	sampleRate int,
+	channels int) {
+	err := microphone.Init()
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	file = f
-	defer f.Close()
+	defer microphone.Terminate()
 
-	// Open default input stream
-	in := make([]byte, 64)
-	inputStream, err := portaudio.OpenDefaultStream(1, 0, 44100, len(in), in)
+	stream, format, err := microphone.OpenDefaultStream(
+		beep.SampleRate(sampleRate),
+		channels)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	defer inputStream.Close()
 
-	// Start input stream
-	if err = inputStream.Start(); err != nil {
-		fmt.Println(err)
-		return
+	defer stream.Close()
+
+	filename := "mic-" + output
+	if !strings.HasSuffix(filename, ".wav") {
+		filename += ".wav"
 	}
-	recording = true
-	timeOut := time.NewTimer(time.Duration(c.Int("duration")) * time.Second)
-	defer timeOut.Stop()
-	for {
-		select {
-		case <-timeOut.C:
-			stopRecording()
-			return
-		default:
-			if !recording {
-				return
-			}
-			// Read audio from input
-			if err = inputStream.Read(); err != nil {
-				fmt.Println(err)
-				return
-			}
-			// Write audio to file
-			n, err := file.Write(in)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
 
-			fmt.Printf("Wrote %d bytes to file\n", n)
-		}
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, os.Kill)
+	go func() {
+		<-sig
+		stream.Stop()
+		stream.Close()
+	}()
+
+	stream.Start()
+
+	if duration > 0 {
+		fmt.Println("Recording for", duration, "seconds")
+
+		go func() {
+			for {
+				select {
+				case <-time.After(time.Duration(duration) * time.Second):
+					stream.Stop()
+					stream.Close()
+					return
+				}
+			}
+		}()
+	}
+
+	err = wav.Encode(f, stream, format)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func stopRecording() {
-	recording = false
-	file.Close()
+func recordFromDevice(output string,
+	duration int,
+	sampleRate int,
+	channels int,
+	framesPerBuffer int) {
+	fmt.Println("Recording.  Press Ctrl-C to stop.")
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, os.Kill)
+
+	fileName := "device-" + output
+	if !strings.HasSuffix(fileName, ".wav") {
+		fileName += ".wav"
+	}
+	f, err := os.Create(fileName)
+	chk(err)
+
+	// form chunk
+	_, err = f.WriteString("FORM")
+	chk(err)
+	chk(binary.Write(f, binary.BigEndian, int32(0))) //total bytes
+	_, err = f.WriteString("WAV")
+	chk(err)
+
+	// common chunk
+	_, err = f.WriteString("COMM")
+	chk(err)
+	chk(binary.Write(f, binary.BigEndian, int32(18)))                  //size
+	chk(binary.Write(f, binary.BigEndian, int16(1)))                   //channels
+	chk(binary.Write(f, binary.BigEndian, int32(0)))                   //number of samples
+	chk(binary.Write(f, binary.BigEndian, int16(32)))                  //bits per sample
+	_, err = f.Write([]byte{0x40, 0x0e, 0xac, 0x44, 0, 0, 0, 0, 0, 0}) //80-bit sample rate 44100
+	chk(err)
+
+	// sound chunk
+	_, err = f.WriteString("SSND")
+	chk(err)
+	chk(binary.Write(f, binary.BigEndian, int32(0))) //size
+	chk(binary.Write(f, binary.BigEndian, int32(0))) //offset
+	chk(binary.Write(f, binary.BigEndian, int32(0))) //block
+	nSamples := 0
+	defer func() {
+		// fill in missing sizes
+		totalBytes := 4 + 8 + 18 + 8 + 8 + 4*nSamples
+		_, err = f.Seek(4, 0)
+		chk(err)
+		chk(binary.Write(f, binary.BigEndian, int32(totalBytes)))
+		_, err = f.Seek(22, 0)
+		chk(err)
+		chk(binary.Write(f, binary.BigEndian, int32(nSamples)))
+		_, err = f.Seek(42, 0)
+		chk(err)
+		chk(binary.Write(f, binary.BigEndian, int32(4*nSamples+8)))
+		chk(f.Close())
+	}()
+
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+	in := make([]int32, framesPerBuffer)
+	stream, err := portaudio.OpenDefaultStream(1, 0, 44100, len(in), in)
+	chk(err)
+	defer stream.Close()
+
+	chk(stream.Start())
+	for {
+		chk(stream.Read())
+		chk(binary.Write(f, binary.BigEndian, in))
+		nSamples += len(in)
+		select {
+		case <-sig:
+			return
+		default:
+		}
+	}
+	chk(stream.Stop())
+}
+
+func chk(err error) {
+	if err != nil {
+		log.Fatal(err)
+		//panic(err)
+	}
+}
+
+func start(c *cli.Context) {
+	fmt.Println("Recording. Press Ctrl-C to stop.")
+
+	if c.String("device") == "microphone" {
+		recordFromMicrophone(c.String("output"),
+			c.Int("duration"),
+			c.Int("sample-rate"),
+			c.Int("channels"))
+	}
+
+	if c.String("device") == "device" {
+		recordFromDevice(c.String("output"),
+			c.Int("duration"),
+			c.Int("sample-rate"),
+			c.Int("channels"),
+			c.Int("frames-per-buffer"))
+	}
 }
 
 func main() {
@@ -82,16 +185,40 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "output, o",
-			Value: "recording.wav",
+			Value: "recording",
 			Usage: "Output file name",
 		},
 		cli.IntFlag{
 			Name:  "duration, d",
-			Value: 60,
+			Value: 0,
 			Usage: "Duration of recording in seconds",
 		},
+		cli.IntFlag{
+			Name:  "sample-rate, r",
+			Value: 44100,
+			Usage: "Sample rate of recording",
+		},
+		cli.IntFlag{
+			Name:  "channels, c",
+			Value: 1,
+			Usage: "Number of channels",
+		},
+		cli.StringFlag{
+			Name:  "device, i",
+			Value: "microphone",
+			Usage: "Device to record from",
+		},
+		cli.IntFlag{
+			Name:  "frames-per-buffer, f",
+			Value: 64,
+			Usage: "Frames per buffer",
+		},
 	}
-	app.Action = startRecording
 
-	app.Run(os.Args)
+	app.Action = start
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
