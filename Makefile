@@ -3,7 +3,7 @@ VERSION=1.0.0
 BUILD_DIR=./build
 BUILD_TIME=`date +%FT%T%z`
 GOX_OS_ARCH="darwin/amd64 darwin/arm64 linux/386 linux/amd64 windows/386 windows/amd64"
-GOROOT=/home/hdca/Sdk/go1.18.5/go
+GOROOT=/home/hdca/Sdk/go1.20.7/go
 GOPATH=/home/hdca/go
 CGO_ENABLED=0
 
