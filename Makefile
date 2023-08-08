@@ -1,10 +1,10 @@
-BINARY=rec
+BINARY=go_audio
 VERSION=1.0.0
 BUILD_DIR=./build
 BUILD_TIME=`date +%FT%T%z`
 GOX_OS_ARCH="darwin/amd64 darwin/arm64 linux/386 linux/amd64 windows/386 windows/amd64"
 GOROOT=/home/hdca/Sdk/go1.20.7/go
-GOPATH=/home/hdca/go
+GOPATH=/home/hdca/Sdk/go1.20.7/go
 CGO_ENABLED=0
 
 .PHONY: default
@@ -20,17 +20,17 @@ start:
 
 .PHONY: build
 build:
-	go build -a -o ${BUILD_DIR}/${BINARY} main.go
+	go build -a -o ${BUILD_DIR}/${BINARY} cmd/main.go
 
 .PHONY: build-version
 build-version:
-	go build -a -o ${BUILD_DIR}/${BINARY}-${VERSION} main.go
+	go build -a -o ${BUILD_DIR}/${BINARY}-${VERSION} cmd/main.go
 
 .PHONY: build-linux
 build-linux:
 	GOARCH=amd64 \
 	GOOS=linux \
-	go build -ldflags "-X main.Version=${VERSION}" -a -o ${BUILD_DIR}/${BINARY}-${VERSION} main.go
+	go build -ldflags "-X main.Version=${VERSION}" -a -o ${BUILD_DIR}/${BINARY}-${VERSION} cmd/main.go
 
 .PHONY: build-gox
 build-gox:
