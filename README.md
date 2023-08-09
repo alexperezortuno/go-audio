@@ -2,7 +2,7 @@
 
 ### Requirements
 
-```shell
+```bash
 sudo apt install portaudio19-dev
 ```
 
@@ -11,43 +11,43 @@ brew install ffmpeg       # macOS
 sudo apt-get install ffmpeg  # Linux
 ```
 
-```shell
+```bash
 go mod init github.com/your-username/your-repo
 go mod tidy
 ```
 
 ### Run
 
-```shell
+```bash
 go run cmd/main.go
 ```
 
 ### Build
 
-```shell
+```bash
 make build
 ```
 
 ### Examples
 
-```shell
+```bash
 ./build/go_audio -t -p -l "en" -s "How are you?"
 ```
     
-```shell
+```bash
 ./build/go_audio -t -p -l "es" -s "¿En que puedo ayudarte?"
 ```
 
-```shell
+```bash
 ./build/go_audio -t -p -l "pt" -s "Muito longe, no entanto, que a estrada é muito longa."
 ```
 
-```shell
+```bash
 ./build/go_audio -t -p --format "mp3" --codec "libmp3lame" -i "audio/file_name_to_mp3.wav" -e
 ```
 
 ### Test
 
-```shell
+```bash
 make test
 ```
