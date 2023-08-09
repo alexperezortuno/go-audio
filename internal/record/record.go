@@ -78,6 +78,16 @@ func recordFromMicrophone(c *cli.Context) {
 
 	err = wav.Encode(f, stream, format)
 	chk(err, c)
+
+	if c.Bool("encode") {
+		_, err = utils.ConvertMediaFile(filename, c, false)
+		chk(err, c)
+	}
+
+	if c.Bool("play") {
+		err := utils.OpenFileWithDefaultMediaPlayer(filename)
+		chk(err, c)
+	}
 }
 
 func recordFromDevice(c *cli.Context) {
