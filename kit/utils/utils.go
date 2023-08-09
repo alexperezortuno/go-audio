@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"os"
 	"os/exec"
 	"runtime"

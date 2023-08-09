@@ -40,6 +40,10 @@ build-gox:
 deps:
 	dep ensure;
 
+.PHONY: test-json
+test-json:
+	go test -v ./tests -json > report.json
+
 .PHONY: test
 test:
-	go test
+	go test -v ./tests > report.txt

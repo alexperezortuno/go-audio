@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/alexperezortuno/go-audio/kit/logger"
 	"github.com/alexperezortuno/go-audio/kit/utils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"os"
 	"time"
 )
@@ -14,10 +14,10 @@ type AdditionalProcess struct {
 }
 
 func (a AdditionalProcess) Play(fileName string) error {
-	var logger = logger.GetLogger(&a.Context)
+	var log = logger.GetLogger(&a.Context)
 	var err error
 	if a.Context.Bool("play") {
-		logger.Debugln("Playing TTS...")
+		log.Debugln("Playing TTS...")
 		time.Sleep(2 * time.Second)
 		fileName, err = utils.ConvertMediaFile(fileName, &a.Context, true)
 		if err != nil {

@@ -3,7 +3,7 @@ package logger
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"io"
 	"os"
 )

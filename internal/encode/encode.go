@@ -3,7 +3,7 @@ package encode
 import (
 	"github.com/alexperezortuno/go-audio/kit/logger"
 	"github.com/alexperezortuno/go-audio/kit/utils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"os"
 )
 

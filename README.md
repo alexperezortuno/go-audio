@@ -6,6 +6,10 @@
 sudo apt install portaudio19-dev
 ```
 
+```bash
+brew install ffmpeg       # macOS
+sudo apt-get install ffmpeg  # Linux
+```
 
 ```shell
 go mod init github.com/your-username/your-repo
@@ -42,3 +46,8 @@ make build
 ./build/go_audio -t -p --format "mp3" --codec "libmp3lame" -i "audio/file_name_to_mp3.wav" -e
 ```
 
+### Test
+
+```shell
+make test
+```
