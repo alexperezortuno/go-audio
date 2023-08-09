@@ -19,8 +19,6 @@ build
 *.json
 *.wav
 *.mp3
-go.mod
-go.sum
 audio
 .env
 env
