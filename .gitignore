@@ -22,3 +22,5 @@ build
 go.mod
 go.sum
 audio
+.env
+env
