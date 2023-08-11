@@ -37,7 +37,6 @@ sudo apt-get install ffmpeg  # Linux
 ```
 
 ```bash
-go mod init github.com/your-username/your-repo
 go mod tidy
 ```
 
