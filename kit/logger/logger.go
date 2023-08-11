@@ -9,7 +9,7 @@ import (
 )
 
 func GetLogger(c *cli.Context) *logrus.Logger {
-	logFile := "log.txt"
+	logFile := c.String("log-path") + "/" + c.String("log-name") + ".log"
 	var f *os.File
 	f, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {

@@ -132,6 +132,18 @@ func main() {
 				Usage:   "file name to use for audio file",
 				EnvVars: []string{"OPEN_AUDIO_FILE_NAME"},
 			},
+			&cli.StringFlag{
+				Name:    "log-path",
+				Value:   "logs",
+				Usage:   "output log path",
+				EnvVars: []string{"OPEN_AUDIO_LOG_PATH"},
+			},
+			&cli.StringFlag{
+				Name:    "log-name",
+				Value:   "open-audio",
+				Usage:   "output log name",
+				EnvVars: []string{"OPEN_AUDIO_LOG_NAME"},
+			},
 		},
 		Action: func(c *cli.Context) error {
 			if c.Bool("encode") {
