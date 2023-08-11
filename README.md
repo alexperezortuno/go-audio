@@ -1,5 +1,9 @@
 # go-audio
 
+## Description
+
+This is an application for recording and editing audio using the ffmpeg library. Additionally, it can convert text to audio in different languages.
+
 ### CLI Options
 
 | Flag                    | Default    | Environment Variable         | Description                                                                         |
