@@ -37,7 +37,7 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:    "record",
-				Usage:   "Option to generate text to speech",
+				Usage:   "record audio from microphone or board",
 				EnvVars: []string{"OPEN_AUDIO_RECORD"},
 			},
 			&cli.StringFlag{

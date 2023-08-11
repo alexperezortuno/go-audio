@@ -23,6 +23,21 @@ func Start(c *cli.Context) {
 	if l == "pt" {
 		speak(c, voices.Portuguese)
 	}
+	if l == "fr" {
+		speak(c, voices.French)
+	}
+	if l == "it" {
+		speak(c, voices.Italian)
+	}
+	if l == "de" {
+		speak(c, voices.German)
+	}
+	if l == "ru" {
+		speak(c, voices.Russian)
+	}
+	if l == "jp" {
+		speak(c, voices.Japanese)
+	}
 
 	log.Debugln("TTS generated")
 }
