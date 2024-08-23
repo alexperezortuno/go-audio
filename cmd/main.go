@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/alexperezortuno/go-audio/internal/encode"
 	"github.com/alexperezortuno/go-audio/internal/record"
 	"github.com/alexperezortuno/go-audio/internal/tts"
+	"github.com/gordonklaus/portaudio"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -144,8 +146,39 @@ func main() {
 				Usage:   "output log name",
 				EnvVars: []string{"OPEN_AUDIO_LOG_NAME"},
 			},
+			&cli.BoolFlag{
+				Name:    "device-list",
+				Usage:   "list available devices",
+				EnvVars: []string{"OPEN_AUDIO_DEVICE_LIST"},
+			},
 		},
 		Action: func(c *cli.Context) error {
+			if c.Bool("device-list") {
+				err := portaudio.Initialize()
+				if err != nil {
+					log.Fatalf("Error inicializando portaudio: %v", err)
+				}
+				defer func() {
+					err := portaudio.Terminate()
+					if err != nil {
+						log.Fatalf("Error terminando portaudio: %v", err)
+					}
+				}()
+
+				devices, err := portaudio.Devices()
+				if err != nil {
+					log.Fatalf("Error obteniendo dispositivos: %v", err)
+				}
+
+				fmt.Println("Dispositivos de entrada de sonido:")
+				for _, device := range devices {
+					if device.MaxInputChannels > 0 {
+						fmt.Printf("Nombre: %s, Canales de entrada: %d\n", device.Name, device.MaxInputChannels)
+					}
+				}
+				os.Exit(0)
+			}
+
 			if c.Bool("encode") {
 				encode.Start(c)
 				os.Exit(0)

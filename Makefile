@@ -1,18 +1,18 @@
 BINARY=go_audio
 VERSION=1.0.0
-BUILD_DIR=./build
+BUILD_DIR=build
 BUILD_TIME=`date +%FT%T%z`
 GOX_OS_ARCH="darwin/amd64 darwin/arm64 linux/386 linux/amd64 windows/386 windows/amd64"
-GOROOT=/home/hdca/Sdk/go1.20.7/go
-GOPATH=/home/hdca/Sdk/go1.20.7/go
+GOROOT=/<go_root_path>/bin
 CGO_ENABLED=0
+CURRENT_PATH=$(shell pwd)
 
 .PHONY: default
 default: build
 
 .PHONY: clean
 clean:
-	rm -rf ./build
+	rm -rf ${CURRENT_PATH}/${BUILD_DIR}
 
 .PHONY: start
 start:
@@ -20,17 +20,17 @@ start:
 
 .PHONY: build
 build:
-	go build -a -o ${BUILD_DIR}/${BINARY} cmd/main.go
+	${GOROOT}/go build -a -o ${CURRENT_PATH}/${BUILD_DIR}/${BINARY} ${CURRENT_PATH}/cmd/main.go
 
 .PHONY: build-version
 build-version:
-	go build -a -o ${BUILD_DIR}/${BINARY}-${VERSION} cmd/main.go
+	go build -a -o ${CURRENT_PATH}/${BUILD_DIR}/${BINARY}-${VERSION} ${CURRENT_PATH}/cmd/main.go
 
 .PHONY: build-linux
 build-linux:
 	GOARCH=amd64 \
 	GOOS=linux \
-	go build -ldflags "-X main.Version=${VERSION}" -a -o ${BUILD_DIR}/${BINARY}-${VERSION} cmd/main.go
+	${GOROOT}/go build -ldflags "-X main.Version=${VERSION}" -a -o ${BUILD_DIR}/${BINARY}-${VERSION} cmd/main.go
 
 .PHONY: build-gox
 build-gox:
@@ -42,8 +42,8 @@ deps:
 
 .PHONY: test-json
 test-json:
-	go test -v ./tests -json > report.json
+	${GOROOT}/go test -v ./tests -json > report.json
 
 .PHONY: test
 test:
-	go test -v ./tests > report.txt
+	${GOROOT}/go test -v ./tests > report.txt
